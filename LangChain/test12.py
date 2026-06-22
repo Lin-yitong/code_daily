@@ -1,0 +1,42 @@
+import os
+from typing import Iterator, List
+
+from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
+
+# 组件1 ： 聊天模型
+model = ChatOpenAI(
+    model = "deepseek-chat",
+    base_url="https://api.deepseek.com",
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
+)
+
+# 组件2 : 输出解析器（str）
+parser = StrOutputParser()
+
+# 自定义生成器
+def split_into_split(input:Iterator[str]) -> Iterator[List[str]]:
+    buffer = ""
+    for chunk in input:
+        buffer += chunk
+        # 遇到 。需要刷新
+        while "。" in buffer:
+            # 找到 。 的位置
+            stop_index = buffer.index("。")
+            # yield 用于创造生成器
+            yield [buffer[:stop_index].strip()]
+            buffer = buffer[stop_index+1:]
+    # 处理buffer最后几个字
+    yield [buffer.strip()]
+
+# 定义链
+chain = model | parser | split_into_split
+
+
+
+# 返回一个迭代器，产生的消息块
+for chunk in chain.stream("写一段有关于爱情的歌词，需要5句话，每句话用句号结尾"):
+    # chunk : AIMessageChunk
+    # print(chunk.content,end='|',flush=True)
+    # 使用parser，结果就是str
+    print(chunk,end='|',flush=True)
