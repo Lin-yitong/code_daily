@@ -1,6 +1,6 @@
 import os
 
-from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.output_parsers import PydanticOutputParser, JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -20,8 +20,11 @@ class Joke(BaseModel):
     rating: int = Field(description="从1-10分，给这个笑话打分")
 
 # 定义解析器
-parser = PydanticOutputParser(pydantic_object=Joke)
+# parser = PydanticOutputParser(pydantic_object=Joke)
 # print(parser.get_format_instructions())
+
+# Json Schema
+parser = JsonOutputParser(pydantic_object=Joke)
 
 # 提示词模版
 prompt = PromptTemplate(
