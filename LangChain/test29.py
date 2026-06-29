@@ -1,3 +1,4 @@
+from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_siliconflow import SiliconFlowEmbeddings
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
@@ -33,12 +34,28 @@ ids = vector_store.add_documents(docs)
 print(f"共有{len(docs)}个文档，编排了{len(ids)}个索引")
 print(f"前三个文档的索引：{ids[:3]}")
 
-# 根据索引获取文档
-doc_2 = vector_store.get_by_ids(ids[:2])
-print(doc_2)
+# # 根据索引获取文档
+# doc_2 = vector_store.get_by_ids(ids[:2])
+# print(doc_2)
+#
+# # 删除文档
+# vector_store.delete(ids[:2])
+#
+# doc_3 = vector_store.get_by_ids(ids[:3])
+# print(doc_3)
 
-# 删除文档
-vector_store.delete(ids[:2])
+# similarity_search: 根据余弦相似度来捕捉语义的
+# search_doc = vector_store.similarity_search(query="深入阅读",k=2)
+# for doc in search_doc:
+#     print('*' * 30)
+#     print(doc.page_content)
 
-doc_3 = vector_store.get_by_ids(ids[:3])
-print(doc_3)
+# 元数据过滤
+def _filter_function(doc:Document)-> bool :
+    return doc.metadata.get("source") == "../Docs/markdown/XXXX.md"
+
+search_doc = vector_store.similarity_search(query="深入阅读",k=2,filter=_filter_function)
+
+for doc in search_doc:
+    print("*" * 30)
+    print(doc)
