@@ -2,6 +2,7 @@ from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_redis import RedisConfig, RedisVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from redisvl.query.filter import Tag, Num
 
 # 嵌入模型（本地）
 embeddings = HuggingFaceEmbeddings(
@@ -51,12 +52,40 @@ for i,doc in enumerate(docs,start=1):
 print(vector_store.get_by_ids(["01KWB5YCZ3CQ2JJ8AX8QHA2G9C"]))
 
 # 删除
-vector_store.delete(["01KWB5YCZ3CQ2JJ8AX8QHA2G9C"])
-print(vector_store.get_by_ids(["01KWB5YCZ3CQ2JJ8AX8QHA2G9C"]))
+# vector_store.delete(["01KWB5YCZ3CQ2JJ8AX8QHA2G9C"])
+# print(vector_store.get_by_ids(["01KWB5YCZ3CQ2JJ8AX8QHA2G9C"]))
 
 # 批量删除
-vector_store.index.drop_keys(["qa:01KWB5YCZ3CQ2JJ8AX8QHA2G9C"])
+# vector_store.index.drop_keys(["qa:01KWB5YCZ3CQ2JJ8AX8QHA2G9C"])
 
 # 全量删除（连带索引结构全部删除）
-vector_store.index.delete(drop=True)
+# vector_store.index.delete(drop=True)
+
+# 检索
+# search_doc = vector_store.similarity_search(query="阅读",k=2)
+#结果打分
+# search_doc_results = vector_store.similarity_search(query="<UNK>",k=2)
+
+# 过滤条件
+filter_condition = (Tag("category") == "QA") & (Num("num")>5)
+# search_doc= vector_store.similarity_search_with_score(query="阅读",k=2,filter_condition=filter_condition)
+#
+# for doc,score in search_doc:
+#     print( "*" * 30)
+#     print(f"文档分数: {score}")
+#     print(f"文档内容: {doc.page_content}")
+#     print(f"文档元数据: {doc.metadata}")
+
+# MMR搜索：基于语义搜索，先筛选出一批文档 ，然后进行重排序输出
+search_docs = vector_store.max_marginal_relevance_search(
+    query="阅读",
+    k=2,
+    filter_condition=filter_condition,
+    fetch_k=10,
+)
+
+for doc in search_docs:
+    print( "*" * 30)
+    print(f"文档内容: {doc.page_content}")
+    print(f"文档元数据: {doc.metadata}")
 
