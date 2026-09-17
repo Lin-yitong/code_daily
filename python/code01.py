@@ -105,4 +105,4 @@ def write(num):
         print(i)
 
 
-write(20)
+write(10)
